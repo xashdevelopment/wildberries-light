@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildberries Light - Лёгкий браузер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            color: #1d1d1f;
+        }
+
+        .header {
+            background: #fff;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4a4a4a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 14px 20px;
+            border: 2px solid #e5e5e7;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .search-btn:hover {
+            background: #e55a2b;
+        }
+
+        .search-btn:active {
+            transform: scale(0.98);
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        .results-info {
+            font-size: 14px;
+            color: #86868b;
+            margin-bottom: 20px;
+            padding: 0 4px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .product-image-container {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-image-placeholder {
+            font-size: 48px;
+            color: #ccc;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 40px;
+        }
+
+        .product-brand {
+            font-size: 12px;
+            color: #86868b;
+            margin-bottom: 4px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+
+        .product-price-currency {
+            font-size: 14px;
+            color: #86868b;
+            font-weight: 400;
+        }
+
+        .product-old-price {
+            font-size: 14px;
+            color: #86868b;
+            text-decoration: line-through;
+            margin-left: 8px;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            background: #34c759;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .buy-btn:hover {
+            background: #2db84d;
+        }
+
+        .buy-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 16px;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: #86868b;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .modal-link {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #ff6b35;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .modal-link:hover {
+            background: #e55a2b;
+        }
+
+        .modal-link:active {
+            transform: scale(0.98);
+        }
+
+        .modal-close {
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: transparent;
+            color: #86868b;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #1d1d1f;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e5e7;
+            border-top-color: #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            fill: #e5e5e7;
+            margin-bottom: 20px;
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .error-state svg {
+            width: 80px;
+            height: 80px;
+            fill: #ff6b35;
+            margin-bottom: 20px;
+        }
+
+        .error-state button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #86868b;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #ff6b35;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header {
+                padding: 16px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .product-card {
+                border-radius: 12px;
+            }
+
+            .product-info {
+                padding: 12px;
+            }
+
+            .product-name {
+                font-size: 12px;
+                min-height: 34px;
+            }
+
+            .product-price {
+                font-size: 16px;
+            }
+
+            .buy-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .modal-content {
+                padding: 28px;
+            }
+
+            .modal-title {
+                font-size: 18px;
+            }
+
+            .modal-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">WB</div>
+                <span>Wildberries Light</span>
+            </div>
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск товаров..." autocomplete="off">
+                <button class="search-btn" id="searchBtn">Найти</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="results-info" id="resultsInfo">Загрузка товаров...</div>
+        <div class="products-grid" id="productsGrid"></div>
+        <div class="loading" id="loadingState" style="display: none;">
+            <div class="loading-spinner"></div>
+            <span>Загрузка товаров...</span>
+        </div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <p>Ничего не найдено</p>
+            <p style="font-size: 13px; margin-top: 8px;">Попробуйте другой запрос</p>
+        </div>
+        <div class="error-state" id="errorState" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <p id="errorMessage">Ошибка загрузки данных</p>
+            <button id="retryBtn">Повторить</button>
+        </div>
+    </main>
+
+    <!-- Buy Modal -->
+    <div class="modal-overlay" id="buyModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
+            <h2 class="modal-title">Покупка недоступна</h2>
+            <p class="modal-text">
+                К сожалению, мы не поддерживаем платежи Wildberries.
+                Перейдите на официальный сайт для оформления заказа.
+            </p>
+            <a href="#" class="modal-link" id="modalLink" target="_blank" rel="noopener noreferrer">
+                Открыть на Wildberries
+            </a>
+            <button class="modal-close" id="modalClose">Закрыть</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Wildberries Light - лёгкий браузер каталога</p>
+        <p style="margin-top: 8px;">
+            Все товары и ссылки принадлежат <a href="https://www.wildberries.ru" target="_blank" rel="noopener noreferrer">Wildberries</a>
+        </p>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const productsGrid = document.getElementById('productsGrid');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const errorMessage = document.getElementById('errorMessage');
+        const retryBtn = document.getElementById('retryBtn');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const buyModal = document.getElementById('buyModal');
+        const modalLink = document.getElementById('modalLink');
+        const modalClose = document.getElementById('modalClose');
+
+        // Wildberries Base URLs
+        const WB_CATALOG_BASE = 'https://www.wildberries.ru';
+
+        // API Configuration
+        // Uses Vercel Serverless Functions for API proxy
+        // This works both locally (vercel dev) and on Vercel deployment
+        const API_PROXY_BASE = '/api';
+
+        // Fallback sample data for demo purposes (when API is unavailable)
+        const sampleProducts = [
+            {
+                id: 27901542,
+                name: 'Смартфон Samsung Galaxy A54 8/256GB Graphite',
+                brand: 'Samsung',
+                priceU: 3599000,
+                salePriceU: 2999000
+            },
+            {
+                id: 27890036,
+                name: 'Смартфон Samsung Galaxy A34 8/128GB Awesome Graphite',
+                brand: 'Samsung',
+                priceU: 2999000,
+                salePriceU: 2499000
+            },
+            {
+                id: 27050012,
+                name: 'Смартфон Xiaomi 13T 8/256GB Black',
+                brand: 'Xiaomi',
+                priceU: 4999000,
+                salePriceU: 4499000
+            },
+            {
+                id: 24001542,
+                name: 'Наушники беспроводные Apple AirPods Pro 2',
+                brand: 'Apple',
+                priceU: 2499000
+            },
+            {
+                id: 24500036,
+                name: 'Наушники беспроводные Sony WF-1000XM5',
+                brand: 'Sony',
+                priceU: 2799000
+            },
+            {
+                id: 25010018,
+                name: 'Ноутбук Apple MacBook Air 13" M3 8/256GB',
+                brand: 'Apple',
+                priceU: 9999000
+            },
+            {
+                id: 26001542,
+                name: 'Умные часы Samsung Galaxy Watch 6 44mm',
+                brand: 'Samsung',
+                priceU: 3299000
+            },
+            {
+                id: 26010024,
+                name: 'Умные часы Apple Watch Series 9 45mm',
+                brand: 'Apple',
+                priceU: 4499000
+            },
+            {
+                id: 21001542,
+                name: 'Кроссовки Nike Air Max 270 мужские',
+                brand: 'Nike',
+                priceU: 1299000
+            },
+            {
+                id: 23001542,
+                name: 'Игровая мышь Logitech G502 HERO',
+                brand: 'Logitech',
+                priceU: 899000
+            },
+            {
+                id: 29010024,
+                name: 'Клавиатура механическая Logitech G Pro TKL',
+                brand: 'Logitech',
+                priceU: 1299000
+            },
+            {
+                id: 31001542,
+                name: 'Портативная колонка JBL Flip 6 Red',
+                brand: 'JBL',
+                priceU: 1299000
+            }
+        ];
+
+        // Current products cache
+        let currentProducts = [];
+        let currentQuery = '';
+
+        /**
+         * Image Sharding Logic
+         * Wildberries stores images on multiple servers (basket-01.wbbasket.ru to basket-15.wbbasket.ru)
+         * The correct server is calculated based on the product ID (nmId)
+         * Pattern: https://basket-{shard}.wbbasket.ru/vol{vol}/part{part}/{nmId}-1.jpg
+         */
+        function buildProductImageUrl(product) {
+            if (!product.id && !product.nmId) {
+                return null;
+            }
+
+            const nmId = product.id || product.nmId;
+            const nmIdStr = nmId.toString();
+            
+            // Calculate the volume folder (first 4 digits)
+            const vol = nmIdStr.substring(0, Math.min(4, nmIdStr.length));
+            
+            // Calculate the part folder (next 2 digits)
+            const part = nmIdStr.substring(4, Math.min(6, nmIdStr.length));
+            
+            // Calculate the shard number (last digit of nmId determines server 0-15)
+            // This distributes images across basket-01 to basket-15
+            const shard = nmId % 15 + 1;
+            
+            // Construct the image URL with the correct sharding pattern
+            return `https://basket-${shard.toString().padStart(2, '0')}.wbbasket.ru/vol${vol}/part${part}/${nmId}-1.jpg`;
+        }
+
+        /**
+         * Build the correct product link using nmId
+         * Wildberries product URLs follow the pattern: /catalog/{nmId}/detail.aspx
+         */
+        function buildProductLink(product) {
+            const nmId = product.id || product.nmId;
+            return `${WB_CATALOG_BASE}/catalog/${nmId}/detail.aspx`;
+        }
+
+        /**
+         * Format price from Wildberries API format
+         * API returns prices in kopecks (priceU = cents * 100)
+         * salePriceU = discounted price in kopecks
+         */
+        function formatPrice(priceU, salePriceU) {
+            // Wildberries uses price in kopecks (divide by 100 for rubles)
+            const price = salePriceU ? salePriceU / 100 : (priceU ? priceU / 100 : 0);
+            return Math.round(price).toLocaleString('ru-RU');
+        }
+
+        /**
+         * Search products via the Wildberries API
+         * Uses local proxy to bypass CORS restrictions
+         * Falls back to sample data if API is unavailable
+         */
+        async function searchProducts(query) {
+            currentQuery = query;
+            showLoading(true);
+            hideError();
+
+            // Disable search button during loading
+            searchBtn.disabled = true;
+            searchInput.disabled = true;
+
+            try {
+                // Build the API URL with query parameters
+                const params = new URLSearchParams({
+                    query: query || '',
+                    resultset: 'catalog',
+                    dest: '-1257784' // Default destination for Russia
+                });
+
+                // Fetch from local proxy which will forward to Wildberries API
+                // Use AbortController for timeout (cross-browser compatible)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(`${API_PROXY_BASE}/search?${params.toString()}`, {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Parse the products from API response
+                // The API returns products in data.products array
+                const products = data.data?.products || [];
+
+                if (products.length === 0) {
+                    // No products found from API, try fallback
+                    const fallbackProducts = searchFallbackData(query);
+                    if (fallbackProducts.length > 0) {
+                        currentProducts = fallbackProducts;
+                        renderProducts(fallbackProducts);
+                        updateResultsInfo(fallbackProducts.length, query);
+                    } else {
+                        currentProducts = [];
+                        renderProducts([]);
+                        updateResultsInfo(0, query);
+                    }
+                } else {
+                    // Cache and render products from API
+                    currentProducts = products;
+                    renderProducts(products);
+                    updateResultsInfo(products.length, query);
+                }
+
+            } catch (error) {
+                console.warn('Wildberries API fetch failed, using fallback data:', error.message);
+                
+                // Try fallback sample data when API fails
+                const fallbackProducts = searchFallbackData(query);
+                
+                if (fallbackProducts.length > 0) {
+                    currentProducts = fallbackProducts;
+                    renderProducts(fallbackProducts);
+                    updateResultsInfo(fallbackProducts.length, query);
+                    // Show subtle hint that demo data is being used
+                    resultsInfo.textContent += ' (демо-данные)';
+                } else {
+                    currentProducts = [];
+                    renderProducts([]);
+                    updateResultsInfo(0, query);
+                }
+            } finally {
+                showLoading(false);
+                searchBtn.disabled = false;
+                searchInput.disabled = false;
+            }
+        }
+
+        /**
+         * Search through fallback sample data
+         * Used when the Wildberries API is unavailable
+         */
+        function searchFallbackData(query) {
+            if (!query || !query.trim()) {
+                // Return random sample products for initial load
+                return shuffleArray([...sampleProducts]).slice(0, 12);
+            }
+            
+            const lowerQuery = query.toLowerCase();
+            
+            // Filter products by name or brand
+            return sampleProducts.filter(product => 
+                product.name.toLowerCase().includes(lowerQuery) ||
+                (product.brand && product.brand.toLowerCase().includes(lowerQuery))
+            );
+        }
+
+        /**
+         * Shuffle array helper for randomizing fallback products
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Render products to the grid
+         */
+        function renderProducts(products) {
+            productsGrid.innerHTML = '';
+
+            if (products.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            products.forEach((product) => {
+                const card = createProductCard(product);
+                productsGrid.appendChild(card);
+            });
+        }
+
+        /**
+         * Create a single product card element
+         */
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+
+            // Get image URL using sharding logic
+            const imageUrl = buildProductImageUrl(product);
+            
+            // Get product details from API response
+            const name = product.name || product.brand || 'Товар';
+            const brand = product.brand || '';
+            
+            // Format price
+            const priceFormatted = formatPrice(product.priceU, product.salePriceU);
+            const oldPriceFormatted = product.priceU && product.salePriceU && product.priceU !== product.salePriceU
+                ? formatPrice(product.priceU, null)
+                : null;
+
+            // Get correct product link using nmId
+            const productLink = buildProductLink(product);
+
+            // Build image placeholder or actual image
+            const imageContent = imageUrl 
+                ? `<img class="product-image" src="${imageUrl}" alt="${name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'product-image-placeholder\\'>📦</div>';">`
+                : `<div class="product-image-placeholder">📦</div>`;
+
+            // Build price HTML
+            let priceHtml = `<div class="product-price">${priceFormatted} <span class="product-price-currency">₽</span></div>`;
+            if (oldPriceFormatted) {
+                priceHtml = `
+                    <div class="product-price">
+                        ${priceFormatted} <span class="product-price-currency">₽</span>
+                        <span class="product-old-price">${oldPriceFormatted} ₽</span>
+                    </div>
+                `;
+            }
+
+            // Build brand HTML
+            const brandHtml = brand ? `<div class="product-brand">${brand}</div>` : '';
+
+            card.innerHTML = `
+                <div class="product-image-container">
+                    ${imageContent}
+                </div>
+                <div class="product-info">
+                    ${brandHtml}
+                    <div class="product-name">${name}</div>
+                    ${priceHtml}
+                    <button class="buy-btn" data-link="${productLink}">Купить</button>
+                </div>
+            `;
+
+            // Add click event for buy button
+            const buyBtn = card.querySelector('.buy-btn');
+            buyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openBuyModal(productLink);
+            });
+
+            // Add click event for whole card (open in new tab)
+            card.addEventListener('click', () => {
+                window.open(productLink, '_blank', 'noopener,noreferrer');
+            });
+
+            return card;
+        }
+
+        /**
+         * Open the buy modal with the product link
+         */
+        function openBuyModal(link) {
+            modalLink.href = link;
+            buyModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Close the buy modal
+         */
+        function closeBuyModal() {
+            buyModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Update results info text
+         */
+        function updateResultsInfo(count, query) {
+            if (query && query.trim()) {
+                resultsInfo.textContent = `Найдено товаров: ${count} по запросу "${query}"`;
+            } else {
+                resultsInfo.textContent = `Рекомендуемые товары (${count})`;
+            }
+        }
+
+        /**
+         * Show/hide loading state
+         */
+        function showLoading(show) {
+            if (show) {
+                loadingState.style.display = 'flex';
+                productsGrid.style.display = 'none';
+                emptyState.style.display = 'none';
+                errorState.style.display = 'none';
+            } else {
+                loadingState.style.display = 'none';
+                if (currentProducts.length > 0) {
+                    productsGrid.style.display = 'grid';
+                }
+            }
+        }
+
+        /**
+         * Show error state
+         */
+        function showError(message) {
+            errorState.style.display = 'block';
+            errorMessage.textContent = message;
+            productsGrid.style.display = 'none';
+            emptyState.style.display = 'none';
+        }
+
+        /**
+         * Hide error state
+         */
+        function hideError() {
+            errorState.style.display = 'none';
+        }
+
+        // Event Listeners
+        searchBtn.addEventListener('click', () => {
+            searchProducts(searchInput.value);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchProducts(searchInput.value);
+            }
+        });
+
+        retryBtn.addEventListener('click', () => {
+            searchProducts(currentQuery);
+        });
+
+        modalClose.addEventListener('click', closeBuyModal);
+
+        buyModal.addEventListener('click', (e) => {
+            if (e.target === buyModal) {
+                closeBuyModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && buyModal.classList.contains('active')) {
+                closeBuyModal();
+            }
+        });
+
+        // Initialize the application
+        // Perform initial search to load featured products
+        searchProducts('');
+    </script>
+</body>
+</html>

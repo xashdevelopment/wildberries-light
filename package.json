@@ -1,0 +1,19 @@
+{
+  "name": "wildberries-light-vercel",
+  "version": "1.0.0",
+  "description": "Wildberries Light - Serverless Edition for Vercel",
+  "main": "api/search.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "keywords": [
+    "wildberries",
+    "vercel",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}
