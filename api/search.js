@@ -42,10 +42,17 @@ export default async function handler(req, res) {
     // ========================================
     // Build Wildberries API URL
     // ========================================
+    // Using the correct Wildberries search API parameters
     const apiParams = new URLSearchParams({
         query: query,
         resultset: resultset || 'catalog',
-        dest: dest || '-1257784'
+        dest: dest || '-1257784',
+        appType: '1',           // App type
+        curr: 'rub',           // Currency
+        sort: 'popular',       // Sort by popularity
+        spf: '1',              // Suppress spellcheck
+        suppressSpellcheck: 'false',
+        page: '1'              // Page number
     });
 
     const wbApiUrl = `https://search.wb.ru/exactmatch/ru/common/v4/search?${apiParams.toString()}`;
@@ -62,19 +69,58 @@ export default async function handler(req, res) {
                 'Accept': 'application/json, text/plain, */*',
                 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
                 'Origin': 'https://www.wildberries.ru',
-                'Referer': 'https://www.wildberries.ru/'
+                'Referer': 'https://www.wildberries.ru/',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
         });
 
         // Check for HTTP errors
         if (!response.ok) {
             console.error(`[Search] WB API error: ${response.status} ${response.statusText}`);
-            res.status(response.status).json({
-                error: 'Wildberries API Error',
-                message: `API returned status ${response.status}`,
-                details: response.statusText
+            console.log(`[Search] Attempting fallback API endpoint...`);
+            
+            // Try alternative endpoint with different parameters
+            const fallbackParams = new URLSearchParams({
+                query: query,
+                appType: '1',
+                curr: 'rub',
+                dest: '-1257784'
             });
-            return;
+            
+            const fallbackUrl = `https://search.wb.ru/catalog?search?${fallbackParams.toString()}`;
+            
+            try {
+                const fallbackResponse = await fetch(fallbackUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (compatible; WildberriesSearchBot/1.0)'
+                    }
+                });
+                
+                if (!fallbackResponse.ok) {
+                    res.status(response.status).json({
+                        error: 'Wildberries API Error',
+                        message: `API returned status ${response.status}`,
+                        details: response.statusText
+                    });
+                    return;
+                }
+                
+                const fallbackData = await fallbackResponse.json();
+                console.log(`[Search] Fallback success`);
+                res.status(200).json(fallbackData);
+                return;
+                
+            } catch (fallbackError) {
+                console.error(`[Search] Fallback also failed: ${fallbackError.message}`);
+                res.status(response.status).json({
+                    error: 'Wildberries API Error',
+                    message: `API returned status ${response.status}`,
+                    details: response.statusText
+                });
+                return;
+            }
         }
 
         // Parse and forward response
