@@ -1,19 +1,22 @@
 {
-  "name": "wildberries-light-vercel",
+  "name": "wildberries-light-render",
   "version": "1.0.0",
-  "description": "Wildberries Light - Serverless Edition for Vercel",
-  "main": "api/search.js",
+  "description": "Wildberries Light - Render.com Edition for product search",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "start": "vercel dev"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "wildberries",
-    "vercel",
-    "serverless"
+    "render",
+    "express",
+    "search"
   ],
   "author": "",
   "license": "MIT",
-  "devDependencies": {}
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
